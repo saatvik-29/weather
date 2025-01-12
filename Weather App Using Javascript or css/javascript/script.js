@@ -45,6 +45,13 @@ function getWeekDay() {
     const d = new Date();
     let day = weekday[d.getDay()];
     document.getElementById("weekDay").innerText = day;
+    console.log('hello')
+    console.log('hello')
+    console.log('hello')
+    console.log('hello')
+    console.log('hello')
+    console.log('hello')
+    console.log('hello')
 }
 function updateTemperatureUnits() {
     const isCelsius = document.getElementById("unitToggle").checked;
