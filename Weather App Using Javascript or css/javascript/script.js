@@ -23,8 +23,15 @@ class WeatherApp {
         // Add loading state
         this.addLoadingState();
         
+        // Add new features
+        this.addFavoritesSystem();
+        this.addWeatherMap();
+        
         // Initialize with default location
         this.getWeatherData("London");
+        
+        // Make app globally accessible
+        window.weatherApp = this;
     }
 
     addGeolocationButton() {
@@ -140,6 +147,9 @@ class WeatherApp {
         
         // Add additional weather details
         this.addWeatherDetails(data.current);
+        
+        // Add weather alerts
+        this.displayWeatherAlerts(data.current);
     }
 
     addWeatherDetails(current) {
@@ -211,6 +221,240 @@ class WeatherApp {
             searchBtn.innerHTML = '<i class="bi bi-search"></i>';
             searchBtn.disabled = false;
         }
+    }
+
+    displayWeatherAlerts(current) {
+        // Create alerts section if it doesn't exist
+        let alertsSection = document.getElementById("weatherAlerts");
+        if (!alertsSection) {
+            alertsSection = document.createElement("div");
+            alertsSection.id = "weatherAlerts";
+            alertsSection.className = "weather-alerts";
+            document.querySelector(".weather").appendChild(alertsSection);
+        }
+
+        const alerts = this.generateWeatherAlerts(current);
+        
+        if (alerts.length > 0) {
+            alertsSection.innerHTML = `
+                <div class="alerts-header">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <span>Weather Alerts</span>
+                </div>
+                <div class="alerts-list">
+                    ${alerts.map(alert => `
+                        <div class="alert-item ${alert.severity}">
+                            <i class="bi ${alert.icon}"></i>
+                            <span>${alert.message}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        } else {
+            alertsSection.innerHTML = '';
+        }
+    }
+
+    generateWeatherAlerts(current) {
+        const alerts = [];
+        
+        // High wind alert
+        if (current.wind_kph > 50) {
+            alerts.push({
+                severity: 'high',
+                icon: 'bi-wind',
+                message: `High wind warning: ${current.wind_kph} km/h winds`
+            });
+        }
+        
+        // High UV alert
+        if (current.uv > 8) {
+            alerts.push({
+                severity: 'high',
+                icon: 'bi-sun',
+                message: `High UV warning: UV index ${current.uv} - Stay protected!`
+            });
+        }
+        
+        // Heat alert
+        if (current.temp_c > 35) {
+            alerts.push({
+                severity: 'high',
+                icon: 'bi-thermometer-high',
+                message: `Heat warning: ${Math.round(current.temp_c)}°C - Stay hydrated!`
+            });
+        }
+        
+        // Cold alert
+        if (current.temp_c < 0) {
+            alerts.push({
+                severity: 'medium',
+                icon: 'bi-thermometer-low',
+                message: `Cold warning: ${Math.round(current.temp_c)}°C - Dress warmly!`
+            });
+        }
+        
+        // High humidity alert
+        if (current.humidity > 80) {
+            alerts.push({
+                severity: 'medium',
+                icon: 'bi-droplet',
+                message: `High humidity: ${current.humidity}% - Very muggy conditions`
+            });
+        }
+        
+        // Precipitation alert
+        if (current.precip_mm > 10) {
+            alerts.push({
+                severity: 'medium',
+                icon: 'bi-cloud-rain',
+                message: `Heavy precipitation: ${current.precip_mm}mm - Expect wet conditions`
+            });
+        }
+        
+        return alerts;
+    }
+
+    addWeatherMap() {
+        // Create weather map section
+        let mapSection = document.getElementById("weatherMapSection");
+        if (!mapSection) {
+            mapSection = document.createElement("div");
+            mapSection.id = "weatherMapSection";
+            mapSection.className = "weather-map-section";
+            document.querySelector(".container").appendChild(mapSection);
+        }
+
+        mapSection.innerHTML = `
+            <div class="card-box map-card">
+                <h3 class="map-title">
+                    <i class="bi bi-map"></i>
+                    Interactive Weather Map
+                </h3>
+                <div class="map-container">
+                    <div class="map-placeholder">
+                        <i class="bi bi-globe"></i>
+                        <p>Weather Map Integration</p>
+                        <small>Interactive map showing current weather conditions</small>
+                        <button class="map-btn" onclick="this.openWeatherMap()">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                            Open Full Map
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    openWeatherMap() {
+        const location = this.currentLocation || 'London';
+        const mapUrl = `https://www.google.com/maps/search/weather+${encodeURIComponent(location)}`;
+        window.open(mapUrl, '_blank');
+    }
+
+    addFavoritesSystem() {
+        // Add favorites button to search area
+        const searchContainer = document.querySelector('.search_icon');
+        const favoritesBtn = document.createElement('button');
+        favoritesBtn.className = 'button_icon favorites-btn';
+        favoritesBtn.innerHTML = '<i class="bi bi-heart"></i>';
+        favoritesBtn.title = 'Favorite locations';
+        favoritesBtn.onclick = () => this.toggleFavoritesPanel();
+        searchContainer.appendChild(favoritesBtn);
+
+        // Add current location to favorites button
+        const addToFavoritesBtn = document.createElement('button');
+        addToFavoritesBtn.className = 'button_icon add-favorite-btn';
+        addToFavoritesBtn.innerHTML = '<i class="bi bi-heart-fill"></i>';
+        addToFavoritesBtn.title = 'Add to favorites';
+        addToFavoritesBtn.onclick = () => this.addToFavorites();
+        searchContainer.appendChild(addToFavoritesBtn);
+    }
+
+    addToFavorites() {
+        if (!this.currentLocation) return;
+        
+        const favorites = this.getFavorites();
+        if (!favorites.includes(this.currentLocation)) {
+            favorites.push(this.currentLocation);
+            localStorage.setItem('weatherFavorites', JSON.stringify(favorites));
+            this.showNotification('Added to favorites!', 'success');
+        } else {
+            this.showNotification('Already in favorites!', 'info');
+        }
+    }
+
+    getFavorites() {
+        const stored = localStorage.getItem('weatherFavorites');
+        return stored ? JSON.parse(stored) : [];
+    }
+
+    toggleFavoritesPanel() {
+        let panel = document.getElementById("favoritesPanel");
+        if (!panel) {
+            panel = document.createElement("div");
+            panel.id = "favoritesPanel";
+            panel.className = "favorites-panel";
+            document.querySelector(".container").appendChild(panel);
+        }
+
+        const favorites = this.getFavorites();
+        
+        if (panel.style.display === 'block') {
+            panel.style.display = 'none';
+        } else {
+            panel.innerHTML = `
+                <div class="favorites-header">
+                    <h4><i class="bi bi-heart-fill"></i> Favorite Locations</h4>
+                    <button class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                <div class="favorites-list">
+                    ${favorites.length > 0 ? 
+                        favorites.map(fav => `
+                            <div class="favorite-item" onclick="window.weatherApp.getWeatherData('${fav}'); this.parentElement.parentElement.style.display='none'">
+                                <i class="bi bi-geo-alt"></i>
+                                <span>${fav}</span>
+                                <button class="remove-fav" onclick="event.stopPropagation(); window.weatherApp.removeFavorite('${fav}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        `).join('') :
+                        '<div class="no-favorites">No favorite locations yet</div>'
+                    }
+                </div>
+            `;
+            panel.style.display = 'block';
+        }
+    }
+
+    removeFavorite(location) {
+        const favorites = this.getFavorites();
+        const updated = favorites.filter(fav => fav !== location);
+        localStorage.setItem('weatherFavorites', JSON.stringify(updated));
+        this.toggleFavoritesPanel(); // Refresh panel
+        this.showNotification('Removed from favorites!', 'info');
+    }
+
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
 
     showError(message) {

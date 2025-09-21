@@ -10,6 +10,9 @@ A modern, responsive weather application with real-time weather data and 5-day f
 - **Geolocation Support**: Automatic location detection for current weather
 - **Temperature Units**: Toggle between Celsius and Fahrenheit
 - **Search Functionality**: Search for weather in any city worldwide
+- **🌩️ Weather Alerts**: Smart alerts for extreme weather conditions
+- **🗺️ Interactive Weather Map**: Quick access to weather maps
+- **⭐ Favorite Locations**: Save and quickly access favorite cities
 
 ### Enhanced UI/UX
 - **Modern Glass-morphism Design**: Beautiful frosted glass effect with backdrop blur
@@ -23,6 +26,9 @@ A modern, responsive weather application with real-time weather data and 5-day f
 - **Additional Metrics**: UV index, pressure, visibility, feels-like temperature
 - **Weather Icons**: Dynamic weather condition icons
 - **Location Info**: City, region, country, and local time
+- **🌩️ Smart Alerts**: Automatic warnings for extreme weather conditions
+- **🗺️ Map Integration**: Quick access to weather maps for current location
+- **⭐ Favorites System**: Save and manage favorite locations with local storage
 
 ## 🚀 Getting Started
 
